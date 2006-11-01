@@ -96,33 +96,27 @@ public class Dsa {
             BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
             byte[] buffer = new byte[4000];
             int size;
-            int fileSize = 0;
 
             while (0 < (size = in.read(buffer))) {
                 signature.update(buffer, 0, size);
-                fileSize += size;
             }
             in.close();
             byte[] encodedSignature = signature.sign();
             int signatureSize = encodedSignature.length;
 
-            // Store file and signature.
+            // Store signature and file contents.
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(filename + "." + keyId + ".sign"));
-            in = new BufferedInputStream(new FileInputStream(filename));
 
-            out.write(fileSize & 0xFF);
-            out.write((fileSize >> 8) & 0xFF);
-            out.write((fileSize >> 16) & 0xFF);
-            out.write((fileSize >> 24) & 0xFF);
             out.write(signatureSize & 0xFF);
             out.write((signatureSize >> 8) & 0xFF);
             out.write((signatureSize >> 16) & 0xFF);
             out.write((signatureSize >> 24) & 0xFF);
+            out.write(encodedSignature);
 
+            in = new BufferedInputStream(new FileInputStream(filename));
             while (0 < (size = in.read(buffer))) {
                 out.write(buffer, 0, size);
             }
-            out.write(encodedSignature);
             out.close();
             in.close();
         }
@@ -178,32 +172,35 @@ public class Dsa {
         byte[] data = null;
 
         try {
-            // Read file and signature.
+            // Read signature and file contents.
             BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
-            int fileSize = 0;
             int signatureSize = 0;
 
-            fileSize = in.read();
-            fileSize += in.read() << 8;
-            fileSize += in.read() << 16;
-            fileSize += in.read() << 24;
             signatureSize = in.read();
             signatureSize += in.read() << 8;
             signatureSize += in.read() << 16;
             signatureSize += in.read() << 24;
-            System.out.println("File size: " + fileSize);
             System.out.println("Signature size: " + signatureSize);
 
-            byte[] file = new byte[fileSize];
             byte[] encodedSignature = new byte[signatureSize];
-            in.read(file, 0, fileSize);
             in.read(encodedSignature, 0, signatureSize);
+
+            ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+            OutputStream out = new BufferedOutputStream(byteArray);
+            byte[] buffer = new byte[4000];
+            int size;
+
+            while (0 < (size = in.read(buffer))) {
+                out.write(buffer, 0,  size);
+            }
+            out.flush();
             in.close();
+            byte[] file = byteArray.toByteArray();
 
             // Verify the signature.
             Signature signature = Signature.getInstance("SHA1withDSA", "SUN");
             signature.initVerify(pubKey);
-            signature.update(file, 0, fileSize);
+            signature.update(file);
 
             if (signature.verify(encodedSignature)) {
                 System.out.println("Signature verification successful.");
