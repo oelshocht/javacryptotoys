@@ -127,6 +127,9 @@ public class Dsa {
                              + ((signatureSize >> 8) & 0xFF) + ", "
                              + ((signatureSize >> 16) & 0xFF) + ", "
                              + ((signatureSize >> 24) & 0xFF));
+            for (int i = 0; i < encodedSignature.length; ++i) {
+                dataWriter.print(", " + encodedSignature[i]);
+            }
             for (int i = 0; i < data.length; ++i) {
                 dataWriter.print(", " + data[i]);
             }
@@ -239,19 +242,19 @@ public class Dsa {
             }
             out.flush();
             aSignedData.close();
-            data = byteArray.toByteArray();
+            byte[] signedData = byteArray.toByteArray();
 
             // Verify the signature.
             Signature signature = Signature.getInstance("SHA1withDSA", "SUN");
             signature.initVerify(aPubKey);
-            signature.update(data);
+            signature.update(signedData);
 
             if (signature.verify(encodedSignature)) {
                 System.out.println("Signature verification successful.");
+                data = signedData;
             }
             else {
                 System.out.println("Signature verification failed.");
-                data = null;
             }
         }
         catch (Exception e) {
