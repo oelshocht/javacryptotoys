@@ -21,9 +21,9 @@ public class Dsa {
     public Dsa() {
     }
 
-    public static void generateKeyPair(String keyId) {
+    public static void generateKeyPair(String aKeyId) {
 
-        System.out.println("Generating 1024-bit DSA key pair " + keyId + "...");
+        System.out.println("Generating 1024-bit DSA key pair " + aKeyId + "...");
 
         try {
             // Generate key pair.
@@ -38,24 +38,24 @@ public class Dsa {
             byte[] encodedPubKey = pubKey.getEncoded();
 
             // Save encoded keys to file.
-            FileOutputStream privFos = new FileOutputStream(keyId + ".privkey");
+            FileOutputStream privFos = new FileOutputStream(aKeyId + ".privkey");
             privFos.write(encodedPrivKey);
             privFos.close();
-            FileOutputStream pubFos = new FileOutputStream(keyId + ".pubkey");
+            FileOutputStream pubFos = new FileOutputStream(aKeyId + ".pubkey");
             pubFos.write(encodedPubKey);
             pubFos.close();
 
             // Save encoded keys to Java source code.
-            PrintWriter privWriter = new PrintWriter(keyId + ".privkey.java");
-            privWriter.print("byte[] " + keyId + "PrivKey = { " + encodedPrivKey[0]);
+            PrintWriter privWriter = new PrintWriter(aKeyId + ".privkey.java");
+            privWriter.print("byte[] " + aKeyId + "PrivKey = { " + encodedPrivKey[0]);
             for (int i = 1; i < encodedPrivKey.length; ++i) {
                 privWriter.print(", " + encodedPrivKey[i]);
             }
             privWriter.println(" };");
             privWriter.close();
 
-            PrintWriter pubWriter = new PrintWriter(keyId + ".pubkey.java");
-            pubWriter.print("byte[] " + keyId + "PubKey = { " + encodedPubKey[0]);
+            PrintWriter pubWriter = new PrintWriter(aKeyId + ".pubkey.java");
+            pubWriter.print("byte[] " + aKeyId + "PubKey = { " + encodedPubKey[0]);
             for (int i = 1; i < encodedPubKey.length; ++i) {
                 pubWriter.print(", " + encodedPubKey[i]);
             }
@@ -73,13 +73,13 @@ public class Dsa {
         }
     }
 
-    public static void sign(String keyId, String filename) {
+    public static void sign(String aKeyId, String aFilename) {
 
-        System.out.println("Signing file " + filename + " with key " + keyId + "...");
+        System.out.println("Signing file " + aFilename + " with key " + aKeyId + "...");
 
         try {
             // Read encoded private key.
-            FileInputStream privFis = new FileInputStream(keyId + ".privkey");
+            FileInputStream privFis = new FileInputStream(aKeyId + ".privkey");
             byte[] encodedPrivKey = new byte[privFis.available()];
             privFis.read(encodedPrivKey);
             privFis.close();
@@ -89,102 +89,8 @@ public class Dsa {
             KeyFactory keyFactory = KeyFactory.getInstance("DSA", "SUN");
             PrivateKey privKey = keyFactory.generatePrivate(privKeySpec);
 
-            // Sign the file.
-            Signature signature = Signature.getInstance("SHA1withDSA", "SUN");
-            signature.initSign(privKey);
-
-            BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
-            byte[] buffer = new byte[4000];
-            int size;
-
-            while (0 < (size = in.read(buffer))) {
-                signature.update(buffer, 0, size);
-            }
-            in.close();
-            byte[] encodedSignature = signature.sign();
-            int signatureSize = encodedSignature.length;
-
-            // Store signature and file contents.
-            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(filename + "." + keyId + ".sign"));
-
-            out.write(signatureSize & 0xFF);
-            out.write((signatureSize >> 8) & 0xFF);
-            out.write((signatureSize >> 16) & 0xFF);
-            out.write((signatureSize >> 24) & 0xFF);
-            out.write(encodedSignature);
-
-            in = new BufferedInputStream(new FileInputStream(filename));
-            while (0 < (size = in.read(buffer))) {
-                out.write(buffer, 0, size);
-            }
-            out.close();
-            in.close();
-        }
-        catch (Exception e) {
-            System.out.println(e);
-        }
-    }
-
-    public static byte[] verify(String keyId, String filename) {
-
-        byte[] data = null;
-
-        try {
-            // Read encoded public key.
-            System.out.println("Reading public key " + keyId + "...");
-            FileInputStream pubFis = new FileInputStream(keyId + ".pubkey");
-            byte[] encodedPubKey = new byte[pubFis.available()];
-            pubFis.read(encodedPubKey);
-            pubFis.close();
-
-            data = verify(encodedPubKey, filename);
-        }
-        catch (Exception e) {
-            System.out.println(e);
-        }
-
-        return data;
-    }
-
-    public static byte[] verify(byte[] encodedPubKey, String filename) {
-
-        byte[] data = null;
-
-        try {
-            // Decode public key.
-            System.out.println("Decoding public key...");
-            X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encodedPubKey);
-            KeyFactory keyFactory = KeyFactory.getInstance("DSA", "SUN");
-            PublicKey pubKey = keyFactory.generatePublic(pubKeySpec);
-
-            data = verify(pubKey, filename);
-        }
-        catch (Exception e) {
-            System.out.println(e);            
-        }
-
-        return data;
-    }
-
-    public static byte[] verify(PublicKey pubKey, String filename) {
-
-        System.out.println("Verifying signature of file " + filename + "...");
-        byte[] data = null;
-
-        try {
-            // Read signature and file contents.
-            BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
-            int signatureSize = 0;
-
-            signatureSize = in.read();
-            signatureSize += in.read() << 8;
-            signatureSize += in.read() << 16;
-            signatureSize += in.read() << 24;
-            System.out.println("Signature size: " + signatureSize);
-
-            byte[] encodedSignature = new byte[signatureSize];
-            in.read(encodedSignature, 0, signatureSize);
-
+            // Read data.
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(aFilename));
             ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
             OutputStream out = new BufferedOutputStream(byteArray);
             byte[] buffer = new byte[4000];
@@ -195,19 +101,157 @@ public class Dsa {
             }
             out.flush();
             in.close();
-            byte[] file = byteArray.toByteArray();
+            byte[] data = byteArray.toByteArray();
+
+            // Sign the data.
+            Signature signature = Signature.getInstance("SHA1withDSA", "SUN");
+            signature.initSign(privKey);
+            signature.update(data);
+            byte[] encodedSignature = signature.sign();
+            int signatureSize = encodedSignature.length;
+
+            // Save signed data to file.
+            FileOutputStream dataFos = new FileOutputStream(aFilename + "." + aKeyId + ".sign");
+            dataFos.write(signatureSize & 0xFF);
+            dataFos.write((signatureSize >> 8) & 0xFF);
+            dataFos.write((signatureSize >> 16) & 0xFF);
+            dataFos.write((signatureSize >> 24) & 0xFF);
+            dataFos.write(encodedSignature);
+            dataFos.write(data);
+            dataFos.close();
+
+            // Save signed data to Java source code.
+            PrintWriter dataWriter = new PrintWriter(aFilename + "." + aKeyId + ".sign.java");
+            dataWriter.print("byte[] " + aKeyId + "SignedData = { "
+                             + (signatureSize & 0xFF) + ", "
+                             + ((signatureSize >> 8) & 0xFF) + ", "
+                             + ((signatureSize >> 16) & 0xFF) + ", "
+                             + ((signatureSize >> 24) & 0xFF));
+            for (int i = 0; i < data.length; ++i) {
+                dataWriter.print(", " + data[i]);
+            }
+            dataWriter.println(" };");
+            dataWriter.close();
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
+    public static byte[] verify(String aKeyId, String aFilename) {
+
+        byte[] data = null;
+
+        try {
+            System.out.println("Verifying signature of file " + aFilename + "...");
+            InputStream signedData = new BufferedInputStream(new FileInputStream(aFilename));
+            data = verify(aKeyId, signedData);
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return data;
+    }
+
+    public static byte[] verify(byte[] aEncodedPubKey, String aFilename) {
+
+        byte[] data = null;
+
+        try {
+            System.out.println("Verifying signature of file " + aFilename + "...");
+            InputStream signedData = new BufferedInputStream(new FileInputStream(aFilename));
+            data = verify(aEncodedPubKey, signedData);
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return data;
+    }
+
+    public static byte[] verify(String aKeyId, InputStream aSignedData) {
+
+        byte[] data = null;
+
+        try {
+            // Read encoded public key.
+            System.out.println("Reading public key " + aKeyId + "...");
+            InputStream pubFis = new BufferedInputStream(new FileInputStream(aKeyId + ".pubkey"));
+            byte[] encodedPubKey = new byte[pubFis.available()];
+            pubFis.read(encodedPubKey);
+            pubFis.close();
+
+            data = verify(encodedPubKey, aSignedData);
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return data;
+    }
+
+    public static byte[] verify(byte[] aEncodedPubKey, InputStream aSignedData) {
+
+        byte[] data = null;
+
+        try {
+            // Decode public key.
+            System.out.println("Decoding public key...");
+            X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(aEncodedPubKey);
+            KeyFactory keyFactory = KeyFactory.getInstance("DSA", "SUN");
+            PublicKey pubKey = keyFactory.generatePublic(pubKeySpec);
+
+            data = verify(pubKey, aSignedData);
+        }
+        catch (Exception e) {
+            System.out.println(e);            
+        }
+
+        return data;
+    }
+
+    public static byte[] verify(PublicKey aPubKey, InputStream aSignedData) {
+
+        byte[] data = null;
+
+        try {
+            // Read signature.
+            int signatureSize = 0;
+
+            signatureSize = aSignedData.read();
+            signatureSize += aSignedData.read() << 8;
+            signatureSize += aSignedData.read() << 16;
+            signatureSize += aSignedData.read() << 24;
+            System.out.println("Signature size: " + signatureSize);
+
+            byte[] encodedSignature = new byte[signatureSize];
+            aSignedData.read(encodedSignature, 0, signatureSize);
+
+            // Read data.
+            ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+            OutputStream out = new BufferedOutputStream(byteArray);
+            byte[] buffer = new byte[4000];
+            int size;
+
+            while (0 < (size = aSignedData.read(buffer))) {
+                out.write(buffer, 0,  size);
+            }
+            out.flush();
+            aSignedData.close();
+            data = byteArray.toByteArray();
 
             // Verify the signature.
             Signature signature = Signature.getInstance("SHA1withDSA", "SUN");
-            signature.initVerify(pubKey);
-            signature.update(file);
+            signature.initVerify(aPubKey);
+            signature.update(data);
 
             if (signature.verify(encodedSignature)) {
                 System.out.println("Signature verification successful.");
-                data = file;
             }
             else {
                 System.out.println("Signature verification failed.");
+                data = null;
             }
         }
         catch (Exception e) {
