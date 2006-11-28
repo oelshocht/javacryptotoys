@@ -260,11 +260,9 @@ public class ClassFile
     public void cryptStrings()
                       throws IOException, ClassFileException
     {
-        mConstantPool.cryptStrings();
-
         // Add crypt method to constant pool.
-        ConstantPool.ConstantUtf8        methodClassName   = mConstantPool.addUtf8("classfile/Utf8");
-        ConstantPool.ConstantUtf8        methodName        = mConstantPool.addUtf8("cryptString");
+        ConstantPool.ConstantUtf8        methodClassName   = mConstantPool.addUtf8("utf8/Utf8");
+        ConstantPool.ConstantUtf8        methodName        = mConstantPool.addUtf8("utf8");
         ConstantPool.ConstantUtf8        methodDescriptor  = mConstantPool.addUtf8("(Ljava/lang/String;)Ljava/lang/String;");
         ConstantPool.ConstantClass       methodClass       = mConstantPool.addClass(methodClassName);
         ConstantPool.ConstantNameAndType methodNameAndType = mConstantPool.addNameAndType(methodName, methodDescriptor);
@@ -302,7 +300,7 @@ public class ClassFile
                         if (constant instanceof ConstantPool.ConstantString)
                         {
                             ConstantPool.ConstantString constantString = (ConstantPool.ConstantString) constant;
-                            System.out.println("Patching instruction " + instruction.toString());
+                            System.out.println("=> Patching instruction " + instruction.toString());
                             int index = iterator.nextIndex();
                             code.add(index, ByteCode.INVOKESTATIC, methodRef);
                             iterator = code.getCode().listIterator(index+1);
@@ -311,6 +309,9 @@ public class ClassFile
                 }
             }
         }
+
+        // Crypt constant pool strings.
+        mConstantPool.cryptStrings();
     }
 
     public void dump()
@@ -495,20 +496,25 @@ public class ClassFile
 
         public void dump()
         {
-            System.out.format("fields[%d] (0x%X) = #%d:#%d\n",
+            System.out.format("fields[%d] (0x%X) = #%d:#%d\n%s\n",
                               mIndex,
                               mAccessFlags,
                               mName.getIndex(),
-                              mDescriptor.getIndex());
-            System.out.format("%s %s:%s\n",
-                              fieldAccessFlags(),
-                              mName.toString(),
-                              mDescriptor.toString());
+                              mDescriptor.getIndex(),
+                              toString());
 
             for (int i = 0; i < mAttributes.length; ++i)
             {
                 mAttributes[i].dump();
             }
+        }
+
+        public String toString()
+        {
+            return String.format("%s %s:%s",
+                                 fieldAccessFlags(),
+                                 mName.toString(),
+                                 mDescriptor.toString());
         }
 
         public String fieldAccessFlags()
@@ -644,20 +650,25 @@ public class ClassFile
 
         public void dump()
         {
-            System.out.format("methods[%d] (0x%X) = #%d:#%d\n",
+            System.out.format("methods[%d] (0x%X) = #%d:#%d\n%s\n",
                               mIndex,
                               mAccessFlags,
                               mName.getIndex(),
-                              mDescriptor.getIndex());
-            System.out.format("%s %s:%s\n",
-                              methodAccessFlags(),
-                              mName.toString(),
-                              mDescriptor.toString());
+                              mDescriptor.getIndex(),
+                              toString());
 
             for (int i = 0; i < mAttributes.length; ++i)
             {
                 mAttributes[i].dump();
             }
+        }
+
+        public String toString()
+        {
+            return String.format("%s %s:%s",
+                                 methodAccessFlags(),
+                                 mName.toString(),
+                                 mDescriptor.toString());
         }
 
         public String methodAccessFlags()

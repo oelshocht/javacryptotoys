@@ -115,7 +115,7 @@ public class Main implements Cloneable
                         dump(classFile.getValidityErrors());
                         System.out.println();
 
-                        System.out.println("Crypting strings...");
+                        System.out.println("Crypting class file strings...");
                         classFile.cryptStrings();
                         System.out.println();
 
@@ -123,8 +123,14 @@ public class Main implements Cloneable
                         String tmp    = filename + ".tmp";
                         System.out.println("Saving class file..");
                         classFile.store(tmp);
-                        new File(filename).renameTo(new File(backup));
-                        new File(tmp).renameTo(new File(filename));
+                        if (!new File(filename).renameTo(new File(backup)))
+                        {
+                            System.out.println("Error creating backup file " + backup);
+                        }
+                        else if (!new File(tmp).renameTo(new File(filename)))
+                        {
+                            System.out.println("Error renaming temporary file " + tmp + " to " + filename);
+                        }
                         System.out.println();
                     }
                     else if (args[1].equals("test"))
@@ -148,8 +154,14 @@ public class Main implements Cloneable
                         String tmp    = filename + ".tmp";
                         System.out.println("Saving class file..");
                         classFile.store(tmp);
-                        new File(filename).renameTo(new File(backup));
-                        new File(tmp).renameTo(new File(filename));
+                        if (!new File(filename).renameTo(new File(backup)))
+                        {
+                            System.out.println("Error creating backup file " + backup);
+                        }
+                        else if (!new File(tmp).renameTo(new File(filename)))
+                        {
+                            System.out.println("Error renaming temporary file " + tmp + " to " + filename);
+                        }
                         System.out.println();
                     }
                 }

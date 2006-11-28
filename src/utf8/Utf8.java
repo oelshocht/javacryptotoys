@@ -5,7 +5,7 @@
  * Created on 17 novembre 2006, 0:42
  */
 
-package classfile;
+package utf8;
 
 import java.io.*;
 import java.util.*;
@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class Utf8 {
 
-    public final static String cryptString(String s) {
+    public final static String utf8(String s) {
 
         try {
             // Write string to byte array in modified UTF-8 format.

@@ -10,6 +10,7 @@ package classfile;
 import java.io.*;
 import java.util.*;
 import security.*;
+import utf8.Utf8;
 
 /**
  *
@@ -49,7 +50,40 @@ public class ConstantPool
         "FieldRef",           //  9
         "MethodRef",          // 10
         "InterfaceMethodRef", // 11
-        "NameAndType"        // 12
+        "NameAndType"         // 12
+    };
+
+    // ==================== CONSTANT SORTING ORDER ====================
+
+    // The only opcode taking an 8-bit constant index operand is LDC.
+    // The only valid constant types for LDC are Integer, Float and String
+    // ==> these should be first in the sorting order.
+    //  0: Integer
+    //     Float
+    //     String
+    //  3: Long
+    //     Double
+    //  5: Class
+    //  6: FieldRef
+    //  7: MethodRef
+    //  8: InterfaceMethodRef
+    //  9: NameAndType
+    // 10: Utf8
+    private static final int[] SORTING_ORDER =
+    {
+        100, // ???
+         10, // Utf8
+        100, // ???
+          0, // Integer
+          0, // Float
+          3, // Long
+          3, // Double
+          5, // Class
+          0, // String
+          6, // FieldRef
+          7, // MethodRef
+          8, // InterfaceMethodRef
+          9  // NameAndType
     };
 
 
@@ -89,13 +123,13 @@ public class ConstantPool
         mInitialPool.addAll(mPool);
 
         // Skip the first implicit constant Object.
-        ListIterator<Constant> iterator = mPool.listIterator(); // TODO: listIterator(1);
+        ListIterator<Constant> iterator = mPool.listIterator();
         if (iterator.hasNext())
         {
             iterator.next();
         }
 
-        // Update all cross-references, skipping t
+        // Update all cross-references.
         while (iterator.hasNext())
         {
             Constant constant = iterator.next();
@@ -134,9 +168,20 @@ public class ConstantPool
             throw new ClassFileException("Cannot store invalid constant pool");
         }
 
-        ListIterator<Constant> iterator = mPool.listIterator();
+        // First shuffle all constants, then sorting them in oder.
+        Constant first = mPool.remove(0);
+        Collections.shuffle(mPool);
+        Collections.sort(mPool, new Comparator<Constant>()
+                                {
+                                    public int compare(Constant c1, Constant c2)
+                                    {
+                                        return SORTING_ORDER[c1.mTag] - SORTING_ORDER[c2.mTag];
+                                    }
+                                });
+        mPool.add(0, first);
 
         // Skip the first implicit constant Object.
+        ListIterator<Constant> iterator = mPool.listIterator();
         if (iterator.hasNext())
         {
             iterator.next();
@@ -190,12 +235,12 @@ public class ConstantPool
         return constant;
     }
 
-    public List<Constant> getByTypeName(String aTypeName)
+    public List<Constant> getByType(int aType)
     {
         List<Constant> list = new ArrayList<Constant>();
         for (Constant constant : mPool)
         {
-            if (constant.getTypeName().toLowerCase().equals(aTypeName.toLowerCase()))
+            if (aType == constant.getType())
             {
                 list.add(constant);
             }
@@ -204,7 +249,6 @@ public class ConstantPool
     }
 
     public ConstantUtf8 addUtf8(String aString)
-//                         throws IOException, ClassFileException
     {
         ConstantUtf8 newUtf8= new ConstantUtf8(aString);
         mPool.add(newUtf8);
@@ -256,31 +300,26 @@ public class ConstantPool
 
     public void cryptStrings()
     {
-        for (Constant constant : getByTypeName("string"))
+        for (Constant constant : getByType(STRING))
         {
-            ConstantString constantString = (ConstantString) constant;
-            if (null == constantString)
+            if (constant instanceof ConstantString)
+            {
+                ConstantString constantString = (ConstantString) constant;
+                System.out.println("Crypting " + constantString.toString());
+                constantString.crypt();
+                System.out.println("=> " + constantString.toString());
+            }
+            else
             {
                 throw new RuntimeException("ConstantPool: constant type mismatch");
-            }
-
-            try
-            {
-                constantString.mString.crypt();
-                //System.out.println();
-            }
-            catch (IOException e)
-            {
-                throw new RuntimeException("ConstantPool: IOException crypting strings: " + e);
             }
         }
     }
 
     public void dump()
     {
-        ListIterator<Constant> iterator = mPool.listIterator();
-
         // Skip the first implicit constant Object.
+        ListIterator<Constant> iterator = mPool.listIterator();
         if (iterator.hasNext())
         {
             iterator.next();
@@ -331,14 +370,12 @@ public class ConstantPool
 
     // ==================== CONSTANT CLASSES ====================
 
-    // TODO: cleanup constructor exceptions
-    // TODO: cleanup access specifiers
     public class Constant
     {
         private final int mTag;
+        private int       mRefCount = 0; 
 
         protected Constant(int aTag)
-//                    throws ClassFileException
         {
             mTag = aTag;
         }
@@ -353,6 +390,26 @@ public class ConstantPool
                     throws IOException
         {
             aOut.writeByte(mTag);
+        }
+
+        public final void incRefCount()
+        {
+            ++mRefCount;
+        }
+
+        public final void decRefCount()
+        {
+            --mRefCount;
+            if (0 == mRefCount)
+            {
+                System.out.println("=> Removing " + toString());
+                mPool.remove(this);
+            }
+        }
+
+        public final int getRefCount()
+        {
+            return mRefCount;
         }
 
         public final int getIndex()
@@ -411,7 +468,6 @@ public class ConstantPool
         private String mValue;
 
         protected ConstantUtf8(String aValue)
-//                        throws ClassFileException
         {
             super(UTF8);
             mValue = aValue;
@@ -441,14 +497,6 @@ public class ConstantPool
         {
             return mValue;
         }
-
-        public void crypt()
-                   throws IOException
-        {
-            String newValue = Utf8.cryptString(mValue);
-            System.out.format("\"%s\" => \"%s\"\n", mValue, newValue);
-            mValue = newValue;
-        }
     }
 
     public class ConstantInteger extends Constant
@@ -457,7 +505,7 @@ public class ConstantPool
 
         protected ConstantInteger(int             aTag,
                                   DataInputStream aIn)
-                           throws IOException, ClassFileException
+                           throws IOException
         {
             super(aTag);
             mValue = aIn.readInt();
@@ -492,7 +540,7 @@ public class ConstantPool
 
         protected ConstantLong(int             aTag,
                                DataInputStream aIn)
-                        throws IOException, ClassFileException
+                        throws IOException
         {
             super(aTag);
             mValue = aIn.readLong();
@@ -527,7 +575,7 @@ public class ConstantPool
 
         protected ConstantFloat(int             aTag,
                                 DataInputStream aIn)
-                         throws IOException, ClassFileException
+                         throws IOException
         {
             super(aTag);
             mValue = aIn.readFloat();
@@ -562,7 +610,7 @@ public class ConstantPool
 
         protected ConstantDouble(int             aTag,
                                  DataInputStream aIn)
-                          throws IOException, ClassFileException
+                          throws IOException
         {
             super(aTag);
             mValue = aIn.readDouble();
@@ -601,11 +649,12 @@ public class ConstantPool
             super(CLASS);
             this.name_index = 0;
             mName = aName;
+            mName.incRefCount();
         }
 
         protected ConstantClass(int             aTag,
                                 DataInputStream aIn)
-                         throws IOException, ClassFileException
+                         throws IOException
         {
             super(aTag);
             this.name_index = aIn.readUnsignedShort();
@@ -618,6 +667,7 @@ public class ConstantPool
             if (constantName instanceof ConstantUtf8)
             {
                 mName = (ConstantUtf8)constantName;
+                mName.incRefCount();
             }
             else
             {
@@ -650,7 +700,7 @@ public class ConstantPool
 
         protected ConstantString(int             aTag,
                                  DataInputStream aIn)
-                          throws IOException, ClassFileException
+                          throws IOException
         {
             super(aTag);
             this.string_index = aIn.readUnsignedShort();
@@ -663,6 +713,7 @@ public class ConstantPool
             if (constantString instanceof ConstantUtf8)
             {
                 mString = (ConstantUtf8)constantString;
+                mString.incRefCount();
             }
             else
             {
@@ -675,6 +726,26 @@ public class ConstantPool
         {
             super.store(aOut);
             aOut.writeShort(mString.getIndex());
+        }
+
+        public void crypt()
+        {
+            String oldValue = mString.mValue;
+            String newValue = Utf8.utf8(oldValue);
+
+            mString.decRefCount();
+            mString = addUtf8(newValue);
+            mString.incRefCount();
+        }
+
+        public void setString(ConstantUtf8 aString)
+        {
+            if (null != mString)
+            {
+                mString.decRefCount();
+            }
+            mString = aString;
+            mString.incRefCount();
         }
 
         public String toValue()
@@ -698,18 +769,19 @@ public class ConstantPool
         protected ConstantRef(int                 aTag,
                               ConstantClass       aClass,
                               ConstantNameAndType aNameAndType)
-//                       throws ClassFileException
         {
             super(aTag);
             this.class_index = 0;
             this.name_and_type_index = 0;
             mClass = aClass;
             mNameAndType = aNameAndType;
+            mClass.incRefCount();
+            mNameAndType.incRefCount();
         }
 
         protected ConstantRef(int             aTag,
                               DataInputStream aIn)
-                       throws IOException, ClassFileException
+                       throws IOException
         {
             super(aTag);
             this.class_index = aIn.readUnsignedShort();
@@ -725,6 +797,8 @@ public class ConstantPool
             {
                 mClass       = (ConstantClass)constantClass;
                 mNameAndType = (ConstantNameAndType)constantNameAndType;
+                mClass.incRefCount();
+                mNameAndType.incRefCount();
             }
             else
             {
@@ -755,7 +829,7 @@ public class ConstantPool
     {
         private ConstantFieldRef(int             aTag,
                                  DataInputStream aIn)
-                          throws IOException, ClassFileException
+                          throws IOException
         {
             super(aTag, aIn);
         }
@@ -765,14 +839,13 @@ public class ConstantPool
     {
         private ConstantMethodRef(ConstantClass       aClass,
                                   ConstantNameAndType aNameAndType)
-//                           throws ClassFileException
         {
             super(METHODREF, aClass, aNameAndType);
         }
 
         private ConstantMethodRef(int             aTag,
                                   DataInputStream aIn)
-                           throws IOException, ClassFileException
+                           throws IOException
         {
             super(aTag, aIn);
         }
@@ -782,7 +855,7 @@ public class ConstantPool
     {
         private ConstantInterfaceMethodRef(int             aTag,
                                            DataInputStream aIn)
-                                    throws IOException, ClassFileException
+                                    throws IOException
         {
             super(aTag, aIn);
         }
@@ -803,11 +876,13 @@ public class ConstantPool
             this.descriptor_index = 0;
             mName = aName;
             mDescriptor = aDescriptor;
+            mName.incRefCount();
+            mDescriptor.incRefCount();
         }
 
         protected ConstantNameAndType(int             aTag,
                                       DataInputStream aIn)
-                               throws IOException, ClassFileException
+                               throws IOException
         {
             super(aTag);
             this.name_index = aIn.readUnsignedShort();
@@ -823,6 +898,8 @@ public class ConstantPool
             {
                 mName       = (ConstantUtf8)constantName;
                 mDescriptor = (ConstantUtf8)constantDescriptor;
+                mName.incRefCount();
+                mDescriptor.incRefCount();
             }
             else
             {

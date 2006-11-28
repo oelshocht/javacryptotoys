@@ -7,6 +7,7 @@ package test;
  */
 
 import classfile.*;
+import utf8.Utf8;
 
 /**
  *
@@ -34,13 +35,13 @@ public class Test
 
     private void test2()
     {
-        System.out.println("Test2: crypted text: " + Utf8.cryptString("SHOULD BE CRYPTED"));
+        System.out.println("Test2: crypted text: " + Utf8.utf8("SHOULD BE CRYPTED"));
     }
 
     private void test3()
     {
         String result = "OK";
-        System.out.println("Test3: concatenating strings:" + result);
+        System.out.println("Test3: concatenating strings: " + result);
     }
 
     private void test4()
