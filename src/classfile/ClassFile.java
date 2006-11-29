@@ -268,7 +268,7 @@ public class ClassFile
         ConstantPool.ConstantNameAndType methodNameAndType = mConstantPool.addNameAndType(methodName, methodDescriptor);
         ConstantPool.ConstantMethodRef   methodRef         = mConstantPool.addMethodRef(methodClass, methodNameAndType);
 
-        // Prepare byte code for invoke static classfile/Utf8.cryptString:(Ljava/land/String;)Ljava/lang/String;
+        // Create byte code for instruction invoke static classfile/Utf8.cryptString:(Ljava/land/String;)Ljava/lang/String;
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
         dos.writeByte(ByteCode.INVOKESTATIC);
@@ -282,28 +282,26 @@ public class ClassFile
             System.out.println("Processing method " + method.toString());
             for (Attribute attribute : method.mAttributes)
             {
-                AttributeCode attrCode = (AttributeCode) attribute;
-                if (null == attrCode)
+                if (attribute instanceof AttributeCode)
                 {
-                    continue;
-                }
-
-                ByteCode code = attrCode.getCode();
-                ListIterator<ByteCode.Instruction> iterator = code.getCode().listIterator();
-                while (iterator.hasNext())
-                {
-                    ByteCode.Instruction instruction = iterator.next();
-                    if (ByteCode.LDC == instruction.getOpcode())
+                    AttributeCode attrCode = (AttributeCode) attribute;
+                    ByteCode code = attrCode.getCode();
+                    ListIterator<ByteCode.Instruction> iterator = code.getCode().listIterator();
+                    while (iterator.hasNext())
                     {
-                        ByteCode.Instruction.Operand op = instruction.getOperands().get(0);
-                        ConstantPool.Constant constant  = mConstantPool.getByIndex(op.getValue());
-                        if (constant instanceof ConstantPool.ConstantString)
+                        ByteCode.Instruction instruction = iterator.next();
+                        if (ByteCode.LDC == instruction.getOpcode())
                         {
-                            ConstantPool.ConstantString constantString = (ConstantPool.ConstantString) constant;
-                            System.out.println("=> Patching instruction " + instruction.toString());
-                            int index = iterator.nextIndex();
-                            code.add(index, ByteCode.INVOKESTATIC, methodRef);
-                            iterator = code.getCode().listIterator(index+1);
+                            ByteCode.Instruction.Operand op = instruction.getOperands().get(0);
+                            ConstantPool.Constant constant  = mConstantPool.getByIndex(op.getConstantIndex());
+                            if (constant instanceof ConstantPool.ConstantString)
+                            {
+                                ConstantPool.ConstantString constantString = (ConstantPool.ConstantString) constant;
+                                System.out.println("=> Patching instruction " + instruction.toString());
+                                int index = iterator.nextIndex();
+                                code.add(index, ByteCode.INVOKESTATIC, methodRef);
+                                iterator = code.getCode().listIterator(index+1);
+                            }
                         }
                     }
                 }

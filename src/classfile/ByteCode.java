@@ -718,10 +718,10 @@ import security.*;
         in.close();
     }
 
-    // TODO: fix this.
     public void add(int                   aIndex,
                     int                   aOpcode,
                     ConstantPool.Constant aConstant)
+             throws ClassFileException
     {
         mInstructions.add(aIndex, new Instruction(aOpcode, aConstant));
     }
@@ -866,16 +866,38 @@ import security.*;
             mOpcode = NOP;
         }
 
-        // TODO: fix this
-        private Instruction(int aOpcode, ConstantPool.Constant aConstant)
+        private Instruction(int                   aOpcode,
+                            ConstantPool.Constant aConstant)
+                     throws ClassFileException
         {
-            mSize = 3;
-            mOpcode = aOpcode;
-            mOperands.add(new Operand(Operand.CONSTANT_INDEX_16, aConstant));
+            if ((aOpcode < 0) || (LAST_OPCODE < aOpcode))
+            {
+                throw new ClassFileException("ByteCode: invalid instruction opcode " + mOpcode);
+            }
+
+            switch (aOpcode)
+            {
+                case INVOKESTATIC:
+                {
+                    mSize   = INSTRUCTION_SIZE[aOpcode];
+                    mOpcode = aOpcode;
+                    mOperands.add(new Operand(Operand.CONSTANT_INDEX_16, aConstant));
+                    break;
+                }
+                default:
+                {
+                    throw new ClassFileException(  "ByteCode: cannot construct instruction\n  "
+                                                 + OPCODE_MNEMONIC[aOpcode]
+                                                 + " #"
+                                                 + aConstant.getIndex()
+                                                 + " //"
+                                                 + aConstant.toString());
+                }
+            }
         }
 
         public Instruction(DataInputStream aIn,
-                           int             aOffset) // TODO: remove this
+                           int             aOffset)
                     throws IOException, ClassFileException
         {
             // Read the opcode.            
@@ -1110,13 +1132,13 @@ import security.*;
 
                         Operand nbOffsets = new Operand(Operand.SIGNED_INTEGER_32, aIn);
                         mOperands.add(nbOffsets);
-                        for (int i = 0; i < nbOffsets.getValue(); ++i)
+                        for (int i = 0; i < nbOffsets.getInteger(); ++i)
                         {
                             mOperands.add(new Operand(Operand.SIGNED_INTEGER_32, aIn));
                             mOperands.add(new Operand(Operand.OPCODE_OFFSET_32, aIn));
                         }
 
-                        mSize = 1 + paddingSize + 8 + (nbOffsets.getValue() * 8);
+                        mSize = 1 + paddingSize + 8 + (nbOffsets.getInteger() * 8);
                         break;
                     }
                     case TABLESWITCH:
@@ -1137,7 +1159,7 @@ import security.*;
                         Operand high = new Operand(Operand.SIGNED_INTEGER_32, aIn);
                         mOperands.add(high);
 
-                        int nbOffsets = high.getValue() - low.getValue() + 1;
+                        int nbOffsets = high.getInteger() - low.getInteger() + 1;
                         for (int i = 0; i < nbOffsets; ++i)
                         {
                             mOperands.add(new Operand(Operand.OPCODE_OFFSET_32, aIn));
@@ -1376,10 +1398,17 @@ import security.*;
             private ConstantPool.Constant mConstant = null;
             private Instruction           mTargetBranch = null;
 
-            // TODO: fix this
-            private Operand(int aType,
+            private Operand(int                   aType,
                             ConstantPool.Constant aConstant)
+                     throws ClassFileException
             {
+                if ((CONSTANT_INDEX_8 != aType) && (CONSTANT_INDEX_16 != aType))
+                {
+                    throw new ClassFileException(  "ByteCode: invalid operand type "
+                                                 + aType
+                                                 + " for constant index operand");
+                }
+
                 mType = aType;
                 mConstant = aConstant;
             }
@@ -1422,7 +1451,7 @@ import security.*;
                         mValue = aIn.readInt();
                         break;
                     default:
-                        throw new ClassFileException("ByeCode: attempted to get unknown operand type " + mType);
+                        throw new ClassFileException("ByteCode: attempted to get unknown operand type " + mType);
                 }
             }
 
@@ -1528,10 +1557,33 @@ import security.*;
                 }
             }
 
-            public int getValue()
+            public int getInteger()
+                             throws ClassFileException
             {
-                // TODO: should only ret
-                return mValue;
+                if (   (SIGNED_INTEGER_8   == mType)
+                    || (SIGNED_INTEGER_16  == mType)
+                    || (SIGNED_INTEGER_32  == mType)
+                    || (UNSIGNED_INTEGER_8 == mType))
+                {
+                    return mValue;
+                }
+                else
+                {
+                    throw new ClassFileException("ByteCode: cannot get integer from operand type " + mType);
+                }
+            }
+
+            public int getConstantIndex()
+                                      throws ClassFileException
+            {
+                if ((CONSTANT_INDEX_8 == mType) || (CONSTANT_INDEX_16 == mType))
+                {
+                    return mValue;
+                }
+                else
+                {
+                    throw new ClassFileException("ByteCode: cannot get constant index from operand type " + mType);
+                }
             }
 
             public int getConstantType()
@@ -1543,7 +1595,7 @@ import security.*;
                 }
                 else
                 {
-                    throw new ClassFileException("ByteCode: attempted to get constant type from non-constant operand");
+                    throw new ClassFileException("ByteCode: cannot get constant type from operand type " + mType);
                 }
             }
 
@@ -1556,7 +1608,7 @@ import security.*;
                 }
                 else
                 {
-                    throw new ClassFileException("ByteCode: attempted to get sub-opcode from non-sub-opcode operand");
+                    throw new ClassFileException("ByteCode: cannot get sub-opcode from operand type " + mType);
                 }
             }
 
