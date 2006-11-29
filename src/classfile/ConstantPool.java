@@ -58,12 +58,12 @@ public class ConstantPool
     // The only opcode taking an 8-bit constant index operand is LDC.
     // The only valid constant types for LDC are Integer, Float and String
     // ==> these should be first in the sorting order.
-    //  0: Integer
+    //  0: Class
+    //     Integer
     //     Float
     //     String
-    //  3: Long
+    //  4: Long
     //     Double
-    //  5: Class
     //  6: FieldRef
     //  7: MethodRef
     //  8: InterfaceMethodRef
@@ -76,9 +76,9 @@ public class ConstantPool
         100, // ???
           0, // Integer
           0, // Float
-          3, // Long
-          3, // Double
-          5, // Class
+          4, // Long
+          4, // Double
+          0, // Class
           0, // String
           6, // FieldRef
           7, // MethodRef
