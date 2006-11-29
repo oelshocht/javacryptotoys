@@ -1120,7 +1120,7 @@ import security.*;
                     }
                     case LOOKUPSWITCH:
                     {
-                        int paddingSize = (aOffset & ~0x03) + 4 - aOffset;
+                        int paddingSize = (aOffset & ~0x03) + 4 - aOffset - 1;
 //                        for (int i = 0; i < paddingSize; ++i)
 //                        {
 //                            mOperands.add(new Operand(Operand.UNSIGNED_CONSTANT_8, aIn));
@@ -1143,7 +1143,7 @@ import security.*;
                     }
                     case TABLESWITCH:
                     {
-                        int paddingSize = (aOffset & ~0x03) + 4 - aOffset;
+                        int paddingSize = (aOffset & ~0x03) + 4 - aOffset - 1;
 //                        for (int i = 0; i < paddingSize; ++i)
 //                        {
 //                            mOperands.add(new Operand(Operand.UNSIGNED_CONSTANT_8, aIn));
@@ -1428,6 +1428,7 @@ import security.*;
                         break;
                     case SIGNED_INTEGER_32:
                         mValue = aIn.readInt();
+                        break;
                     case UNSIGNED_INTEGER_8:
                     case LOCAL_INDEX_8:
                     case SUB_OPCODE:

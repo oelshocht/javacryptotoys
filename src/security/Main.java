@@ -88,6 +88,10 @@ public class Main implements Cloneable
                         System.out.println("Dumping class file...");
                         classFile.dump();
                         System.out.println();
+
+                        System.out.println("Validity errors:");
+                        dump(classFile.getValidityErrors());
+                        System.out.println();
                     }
                     else if (args[1].equals("check"))
                     {

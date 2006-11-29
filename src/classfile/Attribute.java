@@ -18,11 +18,16 @@ import java.util.*;
 {
     // ==================== STATIC FACTORY METHODS  ====================
 
-    public static final String SOURCE_FILE          = "SourceFile";
-    public static final String CONSTANT_VALUE       = "ConstantValue";
-    public static final String CODE                 = "Code";
-    public static final String LINE_NUMBER_TABLE    = "LineNumberTable";
-    public static final String LOCAL_VARIABLE_TABLE = "LocalVariableTable";
+    public static final String SOURCE_FILE               = "SourceFile";
+    public static final String CONSTANT_VALUE            = "ConstantValue";
+    public static final String CODE                      = "Code";
+    public static final String EXCEPTIONS                = "Exceptions";
+    public static final String INNER_CLASSES             = "InnerClasses";
+    public static final String ENCLOSING_METHOD          = "EnclosingMethod";
+    public static final String LINE_NUMBER_TABLE         = "LineNumberTable";
+    public static final String LOCAL_VARIABLE_TABLE      = "LocalVariableTable";
+    public static final String LOCAL_VARIABLE_TYPE_TABLE = "LocalVariableTypeTable";
+    public static final String SIGNATURE                 = "Signature";
 
     public static Attribute parse(ClassFile       aClass,
                                   DataInputStream aIn)
@@ -58,6 +63,22 @@ import java.util.*;
         else if (name.toString().equals(CODE))
         {
             return new AttributeCode(aClass, name, info);
+        }
+        else if (name.toString().equals(EXCEPTIONS))
+        {
+            return new AttributeExceptions(aClass, name, info);
+        }
+        else if (name.toString().equals(INNER_CLASSES))
+        {
+            return new AttributeInnerClasses(aClass, name, info);
+        }
+        else if (name.toString().equals(ENCLOSING_METHOD))
+        {
+            return new AttributeEnclosingMethod(aClass, name, info);
+        }
+        else if (name.toString().equals(SIGNATURE))
+        {
+            return new AttributeSignature(aClass, name, info);
         }
         else
         {
@@ -96,6 +117,10 @@ import java.util.*;
         else if (name.toString().equals(LOCAL_VARIABLE_TABLE))
         {
             return new AttributeLocalVariableTable(aClass, aAttributeCode, name, info);
+        }
+        else if (name.toString().equals(LOCAL_VARIABLE_TYPE_TABLE))
+        {
+            return new AttributeLocalVariableTypeTable(aClass, aAttributeCode, name, info);
         }
         else
         {

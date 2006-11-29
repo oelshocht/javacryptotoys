@@ -13,7 +13,7 @@ import java.io.*;
  *
  * @author Olivier Elshocht
  */
-public class AttributeLocalVariableTable extends Attribute
+/* package */ class AttributeLocalVariableTable extends Attribute
 {
     private AttributeCode mAttributeCode;
 
@@ -28,7 +28,7 @@ public class AttributeLocalVariableTable extends Attribute
     //          u2 index;
     //     } local_variable_table[local_variable_table_length];
     // }
-    private LocalVariableInfo[]       mLocalVariableTable;
+    private LocalVariableInfo[] mLocalVariableTable;
 
     public AttributeLocalVariableTable(ClassFile                 aClass,
                                        AttributeCode             aAttributeCode,
@@ -73,7 +73,7 @@ public class AttributeLocalVariableTable extends Attribute
                        + 2                                //      u2 length;
                        + 2                                //      u2 name_index;
                        + 2                                //      u2 descriptor_index;
-                       + 2                                //          u2 index;
+                       + 2                                //      u2 index;
                           ) * mLocalVariableTable.length; // } local_variable_table[local_variable_table_length];
         }
 
@@ -101,7 +101,7 @@ public class AttributeLocalVariableTable extends Attribute
         private int                        mIndex;
 
         public LocalVariableInfo(DataInputStream aIn)
-                       throws IOException
+                          throws IOException
         {
             int startPcIndex = aIn.readUnsignedShort();
             mStartPc         = mAttributeCode.getCode().getByOffset(startPcIndex);

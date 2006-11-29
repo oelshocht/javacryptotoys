@@ -74,11 +74,11 @@ public class ConstantPool
         100, // ???
          10, // Utf8
         100, // ???
-          0, // Integer
-          0, // Float
+          1, // Integer
+          1, // Float
           4, // Long
           4, // Double
-          0, // Class
+          1, // Class
           0, // String
           6, // FieldRef
           7, // MethodRef

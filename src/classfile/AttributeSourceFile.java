@@ -39,7 +39,9 @@ public class AttributeSourceFile extends Attribute
         else
         {
             mIsValid = false;
-            mValidityErrors.add(toString() + ": invalid sourcefile_index #" + sourceFileIndex);
+            mValidityErrors.add(  toString() + ": invalid sourcefile_index #"
+                                + sourceFileIndex
+                                + ((null != sourceFileConstant) ? (" //" + sourceFileConstant.toString()) : ""));
         }
 
         in.close();

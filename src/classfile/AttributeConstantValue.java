@@ -25,7 +25,7 @@ public class AttributeConstantValue extends Attribute
     public AttributeConstantValue(ClassFile                 aClass,
                                   ConstantPool.ConstantUtf8 aName,
                                   byte[]                    aInfo)
-                          throws IOException
+                           throws IOException
     {
         super(aClass, aName);
         DataInputStream in = new DataInputStream(new ByteArrayInputStream(aInfo));
@@ -64,4 +64,3 @@ public class AttributeConstantValue extends Attribute
         System.out.format("  Constant value: %s\n", mConstantValue.toString());
     }
 }
-
