@@ -12,36 +12,18 @@ import java.util.*;
 
 /**
  *
- * @author Olivier
+ * @author Olivier Elshocht
  */
-public class Utf8 {
-
-    public final static String utf8(String s) {
-
-        try {
-            // Write string to byte array in modified UTF-8 format.
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            DataOutputStream out = new DataOutputStream(bos);
-            out.writeUTF(s);
-            out.flush();
-            byte[] buffer = bos.toByteArray();
-
-            // Read length.
-            DataInputStream in = new DataInputStream(new ByteArrayInputStream(buffer));
-            int length = in.readUnsignedShort();
-
-            // Crypt string.
-            Random rnd = new Random(length);
-            for (int i = 2; i < length+2; ++i){
-                buffer[i] ^= rnd.nextInt() & 0x0F;
-            }
-
-            // Return crypted string.
-            in = new DataInputStream(new ByteArrayInputStream(buffer));
-            return in.readUTF();
+public class Utf8
+{
+    public final static String utf8(String s)
+    {
+        char[] characters = s.toCharArray();
+        Random rnd = new Random(characters.length);
+        for (int i = 0; i < characters.length; ++i)
+        {
+            characters[i] ^= rnd.nextInt();
         }
-        catch (IOException e) {
-            throw new RuntimeException("String operation exception");
-        }
+        return new String(characters);
     }
 }

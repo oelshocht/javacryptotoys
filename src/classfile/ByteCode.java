@@ -247,7 +247,7 @@ import security.*;
         "fconst_0",        // (0x0b)
         "fconst_1",        // (0x0c)
         "fconst_2",        // (0x0d)
-        "dconst_0",        //(0x0e)
+        "dconst_0",        // (0x0e)
         "dconst_1",        // (0x0f)
         "bipush",          // (0x10)
         "sipush",          // (0x11)
@@ -559,7 +559,7 @@ import security.*;
             1, // (0x71) lrem
             1, // (0x72) frem
             1, // (0x73) drem
-            1, // (0x74).......ineg
+            1, // (0x74) ineg
             1, // (0x75) lneg
             1, // (0x76) fneg
             1, // (0x77) dneg
