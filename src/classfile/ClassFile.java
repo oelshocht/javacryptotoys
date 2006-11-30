@@ -30,6 +30,7 @@ public class ClassFile
     private static final int ACC_SYNTHETIC  = 0x1000; // Declared synthetic; Not present in the source code.
     private static final int ACC_ANNOTATION = 0x2000; // Declared as an annotation type.
     private static final int ACC_ENUM       = 0x4000; // Declared as an enum type.
+
     // Internal data.
     private boolean      mIsValid        = true;
     private List<String> mValidityErrors = new ArrayList<String>();
@@ -292,7 +293,8 @@ public class ClassFile
                     while (iterator.hasNext())
                     {
                         ByteCode.Instruction instruction = iterator.next();
-                        if (ByteCode.LDC == instruction.getOpcode())
+                        if (   (ByteCode.LDC == instruction.getOpcode())
+                            || (ByteCode.LDC_W == instruction.getOpcode())) 
                         {
                             ByteCode.Instruction.Operand op = instruction.getOperands().get(0);
                             ConstantPool.Constant constant  = mConstantPool.getByIndex(op.getConstantIndex());

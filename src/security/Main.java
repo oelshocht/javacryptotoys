@@ -119,54 +119,20 @@ public class Main implements Cloneable
                         dump(classFile.getValidityErrors());
                         System.out.println();
 
-                        System.out.println("Crypting class file strings...");
-                        classFile.cryptStrings();
-                        System.out.println();
-
-                        String backup = filename + ".bak";
-                        String tmp    = filename + ".tmp";
-                        System.out.println("Saving class file..");
-                        classFile.store(tmp);
-                        if (!new File(filename).renameTo(new File(backup)))
+                        if (!classFile.isValid())
                         {
-                            System.out.println("Error creating backup file " + backup);
+                            System.out.println("Error: cannot crypt invalid class file");
                         }
-                        else if (!new File(tmp).renameTo(new File(filename)))
+                        else
                         {
-                            System.out.println("Error renaming temporary file " + tmp + " to " + filename);
+                            System.out.println("Crypting class file strings...");
+                            classFile.cryptStrings();
+                            System.out.println();
+
+                            System.out.println("Saving class file..");
+                            classFile.store(filename);
+                            System.out.println();
                         }
-                        System.out.println();
-                    }
-                    else if (args[1].equals("test"))
-                    {
-                        isValidCommand = true;
-                        String filename = args[2];
-
-                        System.out.println("Loading class file " + filename + "...");
-                        ClassFile classFile = new ClassFile(filename);
-                        System.out.println();
-
-                        System.out.println("Validity errors:");
-                        dump(classFile.getValidityErrors());
-                        System.out.println();
-
-                        System.out.println("Adding a Utf8 constant...");
-                        classFile.getConstantPool().addUtf8("class_testA");
-                        System.out.println();
-
-                        String backup = filename + ".bak";
-                        String tmp    = filename + ".tmp";
-                        System.out.println("Saving class file..");
-                        classFile.store(tmp);
-                        if (!new File(filename).renameTo(new File(backup)))
-                        {
-                            System.out.println("Error creating backup file " + backup);
-                        }
-                        else if (!new File(tmp).renameTo(new File(filename)))
-                        {
-                            System.out.println("Error renaming temporary file " + tmp + " to " + filename);
-                        }
-                        System.out.println();
                     }
                 }
                 else if (args[0].equals("test"))
@@ -190,7 +156,6 @@ public class Main implements Cloneable
                 System.out.println("    class CLASSFILE             Dump the specified class file.");
                 System.out.println("    class check CLASSFILE       Check the specified class file.");
                 System.out.println("    class crypt CLASSFILE       Encrypt string constants.");
-                System.out.println("    class test  CLASSFILE       Tests some modifications to the class file.");
                 System.out.println();
                 System.out.println("    test                        Run test suite.");
             }
