@@ -166,15 +166,15 @@ public class Main implements Cloneable
         }
     }
 
-    public static void dump(List<String> list)
+    public static void dump(List<String> aList)
     {
-        if (0 == list.size())
+        if (0 == aList.size())
         {
             System.out.println("None.");
         }
         else
         {
-            for (String item : list)
+            for (String item : aList)
             {
                 System.out.println(item);
             }

@@ -16,9 +16,9 @@ import java.util.*;
  */
 public class Utf8
 {
-    public final static String utf8(String s)
+    public final static String utf8(String aString)
     {
-        char[] characters = s.toCharArray();
+        char[] characters = aString.toCharArray();
         Random rnd = new Random(characters.length);
         for (int i = 0; i < characters.length; ++i)
         {

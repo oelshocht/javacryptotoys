@@ -15,17 +15,14 @@ import java.security.spec.*;
  *
  * @author Olivier Elshocht
  */
-public class Dsa {
-
-    /** Creates a new instance of Dsa */
-    public Dsa() {
-    }
-
-    public static void generateKeyPair(String aKeyId) {
-
+public class Dsa
+{
+    public static void generateKeyPair(String aKeyId)
+    {
         System.out.println("Generating 1024-bit DSA key pair " + aKeyId + "...");
 
-        try {
+        try
+        {
             // Generate key pair.
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA", "SUN");
             SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
@@ -48,7 +45,8 @@ public class Dsa {
             // Save encoded keys to Java source code.
             PrintWriter privWriter = new PrintWriter(aKeyId + ".privkey.java");
             privWriter.print("byte[] " + aKeyId + "PrivKey = { " + encodedPrivKey[0]);
-            for (int i = 1; i < encodedPrivKey.length; ++i) {
+            for (int i = 1; i < encodedPrivKey.length; ++i)
+            {
                 privWriter.print(", " + encodedPrivKey[i]);
             }
             privWriter.println(" };");
@@ -56,7 +54,8 @@ public class Dsa {
 
             PrintWriter pubWriter = new PrintWriter(aKeyId + ".pubkey.java");
             pubWriter.print("byte[] " + aKeyId + "PubKey = { " + encodedPubKey[0]);
-            for (int i = 1; i < encodedPubKey.length; ++i) {
+            for (int i = 1; i < encodedPubKey.length; ++i)
+            {
                 pubWriter.print(", " + encodedPubKey[i]);
             }
             pubWriter.println(" };");
@@ -68,16 +67,19 @@ public class Dsa {
             System.out.println("Public key algorithm: " + pubKey.getAlgorithm());
             System.out.println("Public key format: " + pubKey.getFormat());
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             System.out.println(e);
         }
     }
 
-    public static void sign(String aKeyId, String aFilename) {
-
+    public static void sign(String aKeyId,
+                            String aFilename)
+    {
         System.out.println("Signing file " + aFilename + " with key " + aKeyId + "...");
 
-        try {
+        try
+        {
             // Read encoded private key.
             FileInputStream privFis = new FileInputStream(aKeyId + ".privkey");
             byte[] encodedPrivKey = new byte[privFis.available()];
@@ -96,7 +98,8 @@ public class Dsa {
             byte[] buffer = new byte[4000];
             int size;
 
-            while (0 < (size = in.read(buffer))) {
+            while (0 < (size = in.read(buffer)))
+            {
                 out.write(buffer, 0,  size);
             }
             out.flush();
@@ -127,57 +130,69 @@ public class Dsa {
                              + ((signatureSize >> 8) & 0xFF) + ", "
                              + ((signatureSize >> 16) & 0xFF) + ", "
                              + ((signatureSize >> 24) & 0xFF));
-            for (int i = 0; i < encodedSignature.length; ++i) {
+            for (int i = 0; i < encodedSignature.length; ++i)
+            {
                 dataWriter.print(", " + encodedSignature[i]);
             }
-            for (int i = 0; i < data.length; ++i) {
+            for (int i = 0; i < data.length; ++i)
+            {
                 dataWriter.print(", " + data[i]);
             }
             dataWriter.println(" };");
             dataWriter.close();
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             System.out.println(e);
         }
     }
 
-    public static byte[] verify(String aKeyId, String aFilename) {
-
+    public static byte[] verify(String aKeyId,
+                                String aFilename)
+    {
         byte[] data = null;
 
-        try {
+        try
+        {
             System.out.println("Verifying signature of file " + aFilename + "...");
             InputStream signedData = new BufferedInputStream(new FileInputStream(aFilename));
             data = verify(aKeyId, signedData);
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             System.out.println(e);
         }
 
         return data;
     }
 
-    public static byte[] verify(byte[] aEncodedPubKey, String aFilename) {
+    public static byte[] verify(byte[] aEncodedPubKey,
+                                String aFilename)
+    {
 
         byte[] data = null;
 
-        try {
+        try
+        {
             System.out.println("Verifying signature of file " + aFilename + "...");
             InputStream signedData = new BufferedInputStream(new FileInputStream(aFilename));
             data = verify(aEncodedPubKey, signedData);
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             System.out.println(e);
         }
 
         return data;
     }
 
-    public static byte[] verify(String aKeyId, InputStream aSignedData) {
-
+    public static byte[] verify(String      aKeyId,
+                                InputStream aSignedData)
+    {
         byte[] data = null;
 
-        try {
+        try
+        {
             // Read encoded public key.
             System.out.println("Reading public key " + aKeyId + "...");
             InputStream pubFis = new BufferedInputStream(new FileInputStream(aKeyId + ".pubkey"));
@@ -187,18 +202,21 @@ public class Dsa {
 
             data = verify(encodedPubKey, aSignedData);
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             System.out.println(e);
         }
 
         return data;
     }
 
-    public static byte[] verify(byte[] aEncodedPubKey, InputStream aSignedData) {
-
+    public static byte[] verify(byte[]      aEncodedPubKey,
+                                InputStream aSignedData)
+    {
         byte[] data = null;
 
-        try {
+        try
+        {
             // Decode public key.
             System.out.println("Decoding public key...");
             X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(aEncodedPubKey);
@@ -207,18 +225,21 @@ public class Dsa {
 
             data = verify(pubKey, aSignedData);
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             System.out.println(e);            
         }
 
         return data;
     }
 
-    public static byte[] verify(PublicKey aPubKey, InputStream aSignedData) {
-
+    public static byte[] verify(PublicKey aPubKey,
+                                InputStream aSignedData)
+    {
         byte[] data = null;
 
-        try {
+        try
+        {
             // Read signature.
             int signatureSize = 0;
 
@@ -237,7 +258,8 @@ public class Dsa {
             byte[] buffer = new byte[4000];
             int size;
 
-            while (0 < (size = aSignedData.read(buffer))) {
+            while (0 < (size = aSignedData.read(buffer)))
+            {
                 out.write(buffer, 0,  size);
             }
             out.flush();
@@ -249,15 +271,18 @@ public class Dsa {
             signature.initVerify(aPubKey);
             signature.update(signedData);
 
-            if (signature.verify(encodedSignature)) {
+            if (signature.verify(encodedSignature))
+            {
                 System.out.println("Signature verification successful.");
                 data = signedData;
             }
-            else {
+            else
+            {
                 System.out.println("Signature verification failed.");
             }
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
             System.out.println(e);
         }
 
