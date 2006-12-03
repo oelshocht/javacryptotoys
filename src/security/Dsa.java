@@ -15,7 +15,7 @@ import java.security.spec.*;
  *
  * @author Olivier Elshocht
  */
-public class Dsa
+public final class Dsa
 {
     public static void generateKeyPair(String aKeyId)
     {
