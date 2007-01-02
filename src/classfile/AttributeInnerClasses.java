@@ -119,6 +119,7 @@ import java.io.*;
                 if (innerClassConstant instanceof ConstantPool.ConstantClass)
                 {
                     mInnerClass = (ConstantPool.ConstantClass) innerClassConstant;
+                    mInnerClass.incRefCount();
                 }
                 else
                 {
@@ -142,6 +143,7 @@ import java.io.*;
                 if (outerClassConstant instanceof ConstantPool.ConstantClass)
                 {
                     mOuterClass = (ConstantPool.ConstantClass) outerClassConstant;
+                    mOuterClass.incRefCount();
                 }
                 else
                 {
@@ -165,6 +167,7 @@ import java.io.*;
                 if (nameConstant instanceof ConstantPool.ConstantUtf8)
                 {
                     mName = (ConstantPool.ConstantUtf8) nameConstant;
+                    mName.incRefCount();
                 }
                 else
                 {

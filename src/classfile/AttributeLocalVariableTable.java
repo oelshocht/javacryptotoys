@@ -128,6 +128,7 @@ import java.io.*;
             if (nameConstant instanceof ConstantPool.ConstantUtf8)
             {
                 mName = (ConstantPool.ConstantUtf8) nameConstant;
+                mName.incRefCount();
             }
             else
             {
@@ -143,6 +144,7 @@ import java.io.*;
             if (descriptorConstant instanceof ConstantPool.ConstantUtf8)
             {
                 mDescriptor = (ConstantPool.ConstantUtf8) descriptorConstant;
+                mDescriptor.incRefCount();
             }
             else
             {

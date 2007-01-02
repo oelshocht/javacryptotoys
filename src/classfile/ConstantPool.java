@@ -738,15 +738,15 @@ public class ConstantPool
             mString.incRefCount();
         }
 
-        public void setString(ConstantUtf8 aString)
-        {
-            if (null != mString)
-            {
-                mString.decRefCount();
-            }
-            mString = aString;
-            mString.incRefCount();
-        }
+//        public void setString(ConstantUtf8 aString)
+//        {
+//            if (null != mString)
+//            {
+//                mString.decRefCount();
+//            }
+//            mString = aString;
+//            mString.incRefCount();
+//        }
 
         public String toValue()
         {

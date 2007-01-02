@@ -1,4 +1,4 @@
-/* Copyright (c)2006 Olivier Elshocht
+/* Copyright (c) 2006-2007 Olivier Elshocht
  *
  * Main.java
  *
@@ -135,6 +135,38 @@ public class Main implements Cloneable
                         }
                     }
                 }
+                else if ((args[0].equals("jar")) && (1 != args.length))
+                {
+                    if (2 == args.length)
+                    {
+                        isValidCommand = true;
+                        String filename = args[1];
+
+                        Jar.list(filename);
+                    }
+                    else if (args[1].equals("copy"))
+                    {
+                        if (4 == args.length)
+                        {
+                            isValidCommand = true;
+                            String sourcejar = args[2];
+                            String destjar = args[3];
+
+                            Jar.copy(sourcejar, destjar);
+                        }
+                    }
+                    else if (args[1].equals("crypt"))
+                    {
+                        if (4 == args.length)
+                        {
+                            isValidCommand = true;
+                            String sourcejar = args[2];
+                            String destjar = args[3];
+
+                            Jar.crypt(sourcejar, destjar);
+                        }
+                    }
+                }
                 else if (args[0].equals("test"))
                 {
                     isValidCommand = true;
@@ -148,16 +180,20 @@ public class Main implements Cloneable
                 System.out.println("Usage: security COMMAND [OPTION...]");
                 System.out.println();
                 System.out.println("Commands:");
-                System.out.println("    genkey KEYID                Generate a DSA key pair.");
-                System.out.println("    sign   KEYID FILE           Sign file with specified private key.");
-                System.out.println("    verify KEYID FILE           Verify file signature with specified public key.");
-                System.out.println("    check  FILE                 Verify file signature with default public key.");
+                System.out.println("  genkey KEYID                Generate a DSA key pair.");
+                System.out.println("  sign   KEYID FILE           Sign file with specified private key.");
+                System.out.println("  verify KEYID FILE           Verify file signature with specified public key.");
+                System.out.println("  check  FILE                 Verify file signature with default public key.");
                 System.out.println();
-                System.out.println("    class CLASSFILE             Dump the specified class file.");
-                System.out.println("    class check CLASSFILE       Check the specified class file.");
-                System.out.println("    class crypt CLASSFILE       Encrypt string constants.");
+                System.out.println("  class CLASSFILE             Dump the specified class file.");
+                System.out.println("  class check CLASSFILE       Check the specified class file.");
+                System.out.println("  class crypt CLASSFILE       Encrypt string constants.");
                 System.out.println();
-                System.out.println("    test                        Run test suite.");
+                System.out.println("  jar JARFILE                 List entries.");
+                System.out.println("  jar copy SOURCE DEST        Copy the source jar to the destination jar.");
+                System.out.println("  jar crypt SOURCE DEST       Crypt the source jar to the destination jar.");
+                System.out.println();
+                System.out.println("  test                        Run test suite.");
             }
         }
         catch (Exception e)

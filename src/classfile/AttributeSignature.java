@@ -35,6 +35,7 @@ import java.io.*;
         if (signatureConstant instanceof ConstantPool.ConstantUtf8)
         {
             mSignature = (ConstantPool.ConstantUtf8) signatureConstant;
+            mSignature.incRefCount();
         }
         else
         {

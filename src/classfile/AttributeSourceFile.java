@@ -35,6 +35,7 @@ public class AttributeSourceFile extends Attribute
         if (sourceFileConstant instanceof ConstantPool.ConstantUtf8)
         {
             mSourceFile = (ConstantPool.ConstantUtf8) sourceFileConstant;
+            mSourceFile.incRefCount();
         }
         else
         {

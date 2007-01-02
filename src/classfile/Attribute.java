@@ -45,6 +45,7 @@ import java.util.*;
         if (nameConstant instanceof ConstantPool.ConstantUtf8)
         {
             name = (ConstantPool.ConstantUtf8)nameConstant;
+            name.incRefCount();
         }
 
         // Create attribute instance.
@@ -103,6 +104,7 @@ import java.util.*;
         if (nameConstant instanceof ConstantPool.ConstantUtf8)
         {
             name = (ConstantPool.ConstantUtf8)nameConstant;
+            name.incRefCount();
         }
 
         // Create attribute instance.

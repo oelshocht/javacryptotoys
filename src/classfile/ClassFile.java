@@ -107,6 +107,7 @@ public class ClassFile
             if (thisClassConstant instanceof ConstantPool.ConstantClass)
             {
                 mThisClass = (ConstantPool.ConstantClass)thisClassConstant;
+                mThisClass.incRefCount();
             }
             else
             {
@@ -121,6 +122,7 @@ public class ClassFile
             if (superClassConstant instanceof ConstantPool.ConstantClass)
             {
                 mSuperClass = (ConstantPool.ConstantClass) superClassConstant;
+                mSuperClass.incRefCount();
             }
             else
             {
@@ -139,6 +141,7 @@ public class ClassFile
                 if (interfaceConstant instanceof ConstantPool.ConstantClass)
                 {
                     mInterfaces[i] = (ConstantPool.ConstantClass) interfaceConstant;
+                    mInterfaces[i].incRefCount();
                 }
                 else
                 {
@@ -459,6 +462,7 @@ public class ClassFile
             if (nameConstant instanceof ConstantPool.ConstantUtf8)
             {
                 mName = (ConstantPool.ConstantUtf8)nameConstant;
+                mName.incRefCount();
             }
             else
             {
@@ -473,6 +477,7 @@ public class ClassFile
             if (descriptorConstant instanceof ConstantPool.ConstantUtf8)
             {
                 mDescriptor = (ConstantPool.ConstantUtf8)descriptorConstant;
+                mDescriptor.incRefCount();
             }
             else
             {
@@ -623,6 +628,7 @@ public class ClassFile
             if (nameConstant instanceof ConstantPool.ConstantUtf8)
             {
                 mName = (ConstantPool.ConstantUtf8)nameConstant;
+                mName.incRefCount();
             }
             else
             {
@@ -636,7 +642,8 @@ public class ClassFile
             ConstantPool.Constant descriptorConstant = mConstantPool.getByIndex(descriptorIndex);
             if (descriptorConstant instanceof ConstantPool.ConstantUtf8)
             {
-                mDescriptor                              = (ConstantPool.ConstantUtf8)descriptorConstant;
+                mDescriptor = (ConstantPool.ConstantUtf8)descriptorConstant;
+                mDescriptor.incRefCount();
             }
             else
             {
