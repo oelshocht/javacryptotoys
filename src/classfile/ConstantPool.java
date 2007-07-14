@@ -89,6 +89,7 @@ public class ConstantPool
 
     // ==================== FIELDS ====================
 
+    private int                  mSize;
     private final List<Constant> mPool           = new ArrayList<Constant>();
     private final List<Constant> mInitialPool    = new ArrayList<Constant>();
     private boolean              mIsValid        = true;
@@ -101,16 +102,19 @@ public class ConstantPool
                         DataInputStream aIn)
                  throws IOException
     {
+        mSize = aCount;
+
         // Parse all constants.
         try
         {
-            // Constant 0 is implicitly to Object.
-            mPool.add(new Constant(0));
-
-            // Parse other constants.
             for (int i = 1; i < aCount; ++i)
             {
-                mPool.add(parseConstant(aIn));
+                Constant constant = parseConstant(aIn);
+                mPool.add(constant);
+                if ((constant instanceof ConstantLong) || (constant instanceof ConstantDouble))
+                {
+                    ++i;
+                }
             }
         }
         catch (ClassFileException e)
@@ -122,17 +126,9 @@ public class ConstantPool
         // Set the intial pool.
         mInitialPool.addAll(mPool);
 
-        // Skip the first implicit constant Object.
-        ListIterator<Constant> iterator = mPool.listIterator();
-        if (iterator.hasNext())
-        {
-            iterator.next();
-        }
-
         // Update all cross-references.
-        while (iterator.hasNext())
+        for (Constant constant : mPool)
         {
-            Constant constant = iterator.next();
             try
             {
                 constant.update();
@@ -168,8 +164,7 @@ public class ConstantPool
             throw new ClassFileException("Cannot store invalid constant pool");
         }
 
-        // First shuffle all constants, then sorting them in oder.
-        Constant first = mPool.remove(0);
+        // First shuffle all constants and sort them by type.
         Collections.shuffle(mPool);
         Collections.sort(mPool, new Comparator<Constant>()
                                 {
@@ -178,30 +173,38 @@ public class ConstantPool
                                         return SORTING_ORDER[c1.mTag] - SORTING_ORDER[c2.mTag];
                                     }
                                 });
-        mPool.add(0, first);
-
-        // Skip the first implicit constant Object.
-        ListIterator<Constant> iterator = mPool.listIterator();
-        if (iterator.hasNext())
-        {
-            iterator.next();
-        }
 
         // Store all constants.
-        while (iterator.hasNext())
+        for (Constant constant : mPool)
         {
-            iterator.next().store(aOut);
+            constant.store(aOut);
         }
     }
 
     public int size()
     {
-        return mPool.size();
+        return mSize;
     }
 
     public int indexOf(Constant aConstant)
     {
-        return mPool.indexOf(aConstant);
+        int index = 1;
+        for (Constant it : mPool)
+        {
+            if (it == aConstant)
+            {
+                return index;
+            }
+            if ((it instanceof ConstantLong) || (it instanceof ConstantDouble))
+            {
+                index += 2;
+            }
+            else
+            {
+                index += 1;
+            }            
+        }
+        return -1;
     }
 
     public Constant getByIndex(int aIndex)
@@ -209,22 +212,40 @@ public class ConstantPool
         Constant constant = null;
         Constant initialConstant = null;
 
-        try
+        int index = 1;
+        for (Constant it : mPool)
         {
-            constant = mPool.get(aIndex);
-        }
-        catch (IndexOutOfBoundsException e)
-        {
-            return null;
+            if (index == aIndex)
+            {
+                constant = it;
+                break;
+            }
+            if ((it instanceof ConstantLong) || (it instanceof ConstantDouble))
+            {
+                index += 2;
+            }
+            else
+            {
+                index += 1;
+            }
         }
 
-        try
+        index = 1;
+        for (Constant it : mInitialPool)
         {
-            initialConstant = mInitialPool.get(aIndex);
-        }
-        catch (IndexOutOfBoundsException e)
-        {
-            throw new RuntimeException("ConstantPool: attempted to get constant by index after pool has been modified");
+            if (index == aIndex)
+            {
+                initialConstant = it;
+                break;
+            }
+            if ((it instanceof ConstantLong) || (it instanceof ConstantDouble))
+            {
+                index += 2;
+            }
+            else
+            {
+                index += 1;
+            }
         }
 
         if (constant != initialConstant)
@@ -252,6 +273,8 @@ public class ConstantPool
     {
         ConstantUtf8 newUtf8= new ConstantUtf8(aString);
         mPool.add(newUtf8);
+        ++mSize;
+
         return newUtf8;
     }
 
@@ -259,10 +282,14 @@ public class ConstantPool
     {
         ConstantClass newClass = new ConstantClass(aName);
         mPool.add(newClass);
+        ++mSize;
+
         if (!mPool.contains(aName))
         {
             mPool.add(aName);
+            ++mSize;
         }
+
         return newClass;
     }
 
@@ -271,14 +298,19 @@ public class ConstantPool
     {
         ConstantMethodRef newMethodRef = new ConstantMethodRef(aClass, aNameAndType);
         mPool.add(newMethodRef);
+        ++mSize;
+
         if (!mPool.contains(aClass))
         {
             mPool.add(aClass);
+            ++mSize;
         }
         if (!mPool.contains(aNameAndType))
         {
             mPool.add(aNameAndType);
+            ++mSize;
         }
+
         return newMethodRef;
     }
 
@@ -287,14 +319,19 @@ public class ConstantPool
     {
         ConstantNameAndType newNameAndType = new ConstantNameAndType(aName, aDescriptor);
         mPool.add(newNameAndType);
+        ++mSize;
+
         if (!mPool.contains(aName))
         {
             mPool.add(aName);
+            ++mSize;
         }
         if (!mPool.contains(aDescriptor))
         {
             mPool.add(aDescriptor);
+            ++mSize;
         }
+
         return newNameAndType;
     }
 
@@ -318,17 +355,10 @@ public class ConstantPool
 
     public void dump()
     {
-        // Skip the first implicit constant Object.
-        ListIterator<Constant> iterator = mPool.listIterator();
-        if (iterator.hasNext())
-        {
-            iterator.next();
-        }
-
         // Dump all constants.
-        while (iterator.hasNext())
+        for (Constant constant : mPool)
         {
-            iterator.next().dump();
+            constant.dump();
         }
     }
 
@@ -404,6 +434,7 @@ public class ConstantPool
             {
                 System.out.println("=> Removing " + toString());
                 mPool.remove(this);
+                --mSize;
             }
         }
 
@@ -684,7 +715,14 @@ public class ConstantPool
 
         public String toValue()
         {
-            return "#" + mName.getIndex();
+            if (null == mName)
+            {
+                return "RAW#" + this.name_index;
+            }
+            else
+            {
+                return "#" + mName.getIndex();
+            }
         }
 
         public String toString()
@@ -750,7 +788,14 @@ public class ConstantPool
 
         public String toValue()
         {
-            return "#" + mString.getIndex();
+            if (null == mString)
+            {
+                return "RAW" + this.string_index;
+            }
+            else
+            {
+                return "#" + mString.getIndex();
+            }
         }
 
         public String toString()
@@ -816,7 +861,14 @@ public class ConstantPool
 
         public String toValue()
         {
-            return "#" + mClass.getIndex() + ".#" + mNameAndType.getIndex();
+            if ((null == mClass) || (null == mNameAndType))
+            {
+                return "RAW#" + this.class_index + ".RAW#" + this.name_and_type_index;
+            }
+            else
+            {
+                return "#" + mClass.getIndex() + ".#" + mNameAndType.getIndex();
+            }
         }
 
         public String toString()
@@ -917,6 +969,10 @@ public class ConstantPool
 
         public String toValue()
         {
+            if ((null == mName) || (null == mDescriptor))
+            {
+                return "RAW#" + this.name_index + ":RAW#" + this.descriptor_index;
+            }
             return "#" + mName.getIndex() + ":#" + mDescriptor.getIndex();
         }
 
