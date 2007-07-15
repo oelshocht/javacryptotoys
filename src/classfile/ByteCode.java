@@ -677,7 +677,7 @@ import security.*;
                 Instruction inst = new Instruction(in, offset);
                 mInstructions.add(inst);
 
-                int size = inst.size();
+                int size = inst.size(offset);
                 if (0 == size)
                 {
                     break;
@@ -730,13 +730,15 @@ import security.*;
                throws IOException
     {
         // Store all instructions except for the last dummy NOP instruction.
+        int offset = 0;
         ListIterator<Instruction> iterator = mInstructions.listIterator();
         while (iterator.hasNext())
         {
             Instruction inst = iterator.next();
             if (iterator.hasNext())
             {
-                inst.store(aOut);
+                inst.store(aOut, offset);
+                offset += inst.size(offset);
             }
         }
     }
@@ -761,7 +763,7 @@ import security.*;
             Instruction inst = iterator.next();
             if (iterator.hasNext())
             {
-                size += inst.size();
+                size += inst.size(size);
             }
         }
         return size;
@@ -778,7 +780,7 @@ import security.*;
             }
             else
             {
-                offset += inst.size();
+                offset += inst.size(offset);
             }
         }
         return offset;
@@ -799,7 +801,7 @@ import security.*;
             }
             else
             {
-                offset += inst.size();
+                offset += inst.size(offset);
             }
         }
         if (null == instruction)
@@ -817,7 +819,7 @@ import security.*;
             }
             else
             {
-                offset += inst.size();
+                offset += inst.size(offset);
             }
         }
         if ((null == initialInstruction) || (instruction != initialInstruction))
@@ -844,7 +846,7 @@ import security.*;
             if (iterator.hasNext())
             {
                 System.out.format("%5d: %s\n", offset, inst.toString());
-                offset += inst.size();
+                offset += inst.size(offset);
             }
         }
     }
@@ -856,13 +858,11 @@ import security.*;
 
     public class Instruction
     {
-        private int           mSize;
-        private int           mOpcode;
-        private List<Operand> mOperands = new ArrayList<Operand>();
+        private final int           mOpcode;
+        private final List<Operand> mOperands = new ArrayList<Operand>();
 
         private Instruction()
         {
-            mSize = 1;
             mOpcode = NOP;
         }
 
@@ -872,14 +872,13 @@ import security.*;
         {
             if ((aOpcode < 0) || (LAST_OPCODE < aOpcode))
             {
-                throw new ClassFileException("ByteCode: invalid instruction opcode " + mOpcode);
+                throw new ClassFileException("ByteCode: invalid instruction opcode " + aOpcode);
             }
 
             switch (aOpcode)
             {
                 case INVOKESTATIC:
                 {
-                    mSize   = INSTRUCTION_SIZE[aOpcode];
                     mOpcode = aOpcode;
                     mOperands.add(new Operand(Operand.CONSTANT_INDEX_16, aConstant));
                     break;
@@ -910,12 +909,8 @@ import security.*;
                 throw new IOException("ByteCode: IOException reading opcode at offset " + aOffset + ": " + e);
             }
 
-            // Check the opcode and set the instruction size.
-            if (mOpcode <= LAST_OPCODE)
-            {
-                mSize = INSTRUCTION_SIZE[mOpcode];
-            }
-            else
+            // Check the opcode.
+            if (mOpcode > LAST_OPCODE)
             {
                 throw new ClassFileException("ByteCode: invalid instruction opcode " + mOpcode + " at offset " + aOffset);
             }
@@ -1121,10 +1116,6 @@ import security.*;
                     case LOOKUPSWITCH:
                     {
                         int paddingSize = (aOffset & ~0x03) + 4 - aOffset - 1;
-//                        for (int i = 0; i < paddingSize; ++i)
-//                        {
-//                            mOperands.add(new Operand(Operand.UNSIGNED_CONSTANT_8, aIn));
-//                        }
                         aIn.skip(paddingSize);
 
                         Operand defaultOffset = new Operand(Operand.OPCODE_OFFSET_32, aIn);
@@ -1138,16 +1129,11 @@ import security.*;
                             mOperands.add(new Operand(Operand.OPCODE_OFFSET_32, aIn));
                         }
 
-                        mSize = 1 + paddingSize + 8 + (nbOffsets.getInteger() * 8);
                         break;
                     }
                     case TABLESWITCH:
                     {
                         int paddingSize = (aOffset & ~0x03) + 4 - aOffset - 1;
-//                        for (int i = 0; i < paddingSize; ++i)
-//                        {
-//                            mOperands.add(new Operand(Operand.UNSIGNED_CONSTANT_8, aIn));
-//                        }
                         aIn.skip(paddingSize);
 
                         Operand defaultOffset = new Operand(Operand.OPCODE_OFFSET_32, aIn);
@@ -1165,7 +1151,6 @@ import security.*;
                             mOperands.add(new Operand(Operand.OPCODE_OFFSET_32, aIn));
                         }
 
-                        mSize = 1 + paddingSize + 12 + (nbOffsets * 4);
                         break;
                     }
                     case WIDE:
@@ -1199,11 +1184,6 @@ import security.*;
                         {
                             Operand op3 = new Operand(Operand.SIGNED_INTEGER_16, aIn);
                             mOperands.add(op3);
-                            mSize = 6;
-                        }
-                        else
-                        {
-                            mSize = 4;
                         }
                         break;
                     }
@@ -1231,15 +1211,15 @@ import security.*;
             }
         }
 
-        public void store(DataOutputStream aOut)
+        public void store(DataOutputStream aOut,
+                          int              aOffset)
                    throws IOException
         {
             aOut.writeByte(mOpcode);
 
             if ((LOOKUPSWITCH == mOpcode) || (TABLESWITCH == mOpcode))
             {
-                int offset = getOffset();
-                int paddingSize = (offset & ~0x03) + 4 - offset;
+                int paddingSize = (aOffset & ~0x03) + 4 - aOffset - 1;
                 for (int i = 0; i < paddingSize; ++i)
                 {
                     aOut.writeByte(0);
@@ -1252,9 +1232,35 @@ import security.*;
             }
         }
 
-        public int size()
+        public int size(int aOffset)
         {
-            return mSize;
+            if ((LOOKUPSWITCH == mOpcode) || (TABLESWITCH == mOpcode))
+            {
+                int paddingSize = (aOffset & ~0x03) + 4 - aOffset - 1;
+                return 1 + paddingSize + (mOperands.size() * 4);
+            }
+            else if (WIDE == mOpcode)
+            {
+                try
+                {
+                    if (IINC == mOperands.get(0).getSubOpcode())
+                    {
+                        return 6;
+                    }
+                    else
+                    {
+                        return 4;
+                    }
+                }
+                catch (ClassFileException e)
+                {
+                    throw new RuntimeException(e.getMessage());
+                }
+            }
+            else
+            {
+                return INSTRUCTION_SIZE[mOpcode];
+            }
         }
 
         public int getOffset()

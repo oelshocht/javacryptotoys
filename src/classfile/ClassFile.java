@@ -275,12 +275,12 @@ public class ClassFile
         ConstantPool.ConstantMethodRef   methodRef         = mConstantPool.addMethodRef(methodClass, methodNameAndType);
 
         // Create byte code for instruction invoke static classfile/Utf8.cryptString:(Ljava/land/String;)Ljava/lang/String;
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(bos);
-        dos.writeByte(ByteCode.INVOKESTATIC);
-        dos.writeShort(methodRef.getIndex());
-        dos.flush();
-        byte[] byteCode = bos.toByteArray();
+//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//        DataOutputStream dos = new DataOutputStream(bos);
+//        dos.writeByte(ByteCode.INVOKESTATIC);
+//        dos.writeShort(methodRef.getIndex());
+//        dos.flush();
+//        byte[] byteCode = bos.toByteArray();
         
         // Patch code.
         for (Method method : mMethods)
