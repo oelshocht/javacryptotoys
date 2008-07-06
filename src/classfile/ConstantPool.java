@@ -123,7 +123,7 @@ public class ConstantPool
             mValidityErrors.add(e.toString());
         }
 
-        // Set the intial pool.
+        // Set the initial pool.
         mInitialPool.addAll(mPool);
 
         // Update all cross-references.

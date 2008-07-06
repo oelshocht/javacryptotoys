@@ -208,13 +208,17 @@ import java.io.*;
             {
                 mCatchType = (ConstantPool.ConstantClass) catchTypeConstant;
             }
+            else if (0 == catchTypeIndex)
+            {
+                mCatchType = null;
+            }
             else
             {
                 mIsValid = false;
                 mValidityErrors.add(AttributeCode.this.toString()
                                     + ".exception_table: invalid catch_type constant #"
                                     + catchTypeIndex
-                                    + ((null != catchTypeConstant) ? (" //" + catchTypeConstant.toString()) : ""));
+                                    + ((null == catchTypeConstant) ? "" : (" //" + catchTypeConstant.toString())));
             }
         }
 
@@ -224,7 +228,14 @@ import java.io.*;
             aOut.writeShort(mStartPc.getOffset());
             aOut.writeShort(mEndPc.getOffset());
             aOut.writeShort(mHandlerPc.getOffset());
-            aOut.writeShort(mCatchType.getIndex());
+            if (null == mCatchType)
+            {
+                aOut.writeShort(0);
+            }
+            else
+            {
+                aOut.writeShort(mCatchType.getIndex());
+            }
         }
 
         public void dump()
@@ -233,8 +244,8 @@ import java.io.*;
                               mStartPc.getOffset(),
                               mEndPc.getOffset(),
                               mHandlerPc.getOffset(),
-                              mCatchType.getIndex(),
-                              mCatchType.toString());
+                              ((null == mCatchType) ? 0 : mCatchType.getIndex()),
+                              ((null == mCatchType) ? "Any" : mCatchType.toString()));
         }
     }
 }
