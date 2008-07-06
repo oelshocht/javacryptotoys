@@ -956,7 +956,8 @@ import security.*;
                         int opType = op.getConstantType();
                         if (   (ConstantPool.INTEGER == opType)
                             || (ConstantPool.FLOAT   == opType)
-                            || (ConstantPool.STRING  == opType))
+                            || (ConstantPool.STRING  == opType)
+                            || (ConstantPool.CLASS   == opType))
                         {
                             mOperands.add(op);
                         }
@@ -972,7 +973,8 @@ import security.*;
                         int opType = op.getConstantType();
                         if (   (ConstantPool.INTEGER == opType)
                             || (ConstantPool.FLOAT   == opType)
-                            || (ConstantPool.STRING  == opType))
+                            || (ConstantPool.STRING  == opType)
+                            || (ConstantPool.CLASS   == opType))
                         {
                             mOperands.add(op);
                         }
