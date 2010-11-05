@@ -1,8 +1,8 @@
-/* Copyright (c) 2006 Olivier Elshocht
+/* Copyright (c) 2006-2010 Olivier Elshocht
  *
  * Attribute.java
  *
- * Created on 25 novembre 2006, 20:00
+ * Created 2006-11-25
  */
 
 package classfile;
@@ -102,10 +102,21 @@ import java.io.*;
             mExceptionTable[i].store(aOut);
         }
 
-        aOut.writeShort(mAttributes.length);
+        int attributesCount = mAttributes.length;
         for (int i = 0; i < mAttributes.length; ++i)
         {
-            mAttributes[i].store(aOut);
+            if (!mAttributes[i].isStored())
+            {
+                attributesCount -= 1;
+            }
+        }
+        aOut.writeShort(attributesCount);
+        for (int i = 0; i < mAttributes.length; ++i)
+        {
+            if (mAttributes[i].isStored())
+            {
+                mAttributes[i].store(aOut);
+            }
         }
     }
 

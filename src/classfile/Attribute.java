@@ -1,8 +1,8 @@
-/* Copyright (c) 2006 Olivier Elshocht
+/* Copyright (c) 2006-2010 Olivier Elshocht
  *
  * Attribute.java
  *
- * Created on 25 novembre 2006, 20:00
+ * Created 2006-11-25
  */
 
 package classfile;
@@ -18,16 +18,26 @@ import java.util.*;
 {
     // ==================== STATIC FACTORY METHODS  ====================
 
-    public static final String SOURCE_FILE               = "SourceFile";
-    public static final String CONSTANT_VALUE            = "ConstantValue";
-    public static final String CODE                      = "Code";
-    public static final String EXCEPTIONS                = "Exceptions";
-    public static final String INNER_CLASSES             = "InnerClasses";
-    public static final String ENCLOSING_METHOD          = "EnclosingMethod";
-    public static final String LINE_NUMBER_TABLE         = "LineNumberTable";
-    public static final String LOCAL_VARIABLE_TABLE      = "LocalVariableTable";
-    public static final String LOCAL_VARIABLE_TYPE_TABLE = "LocalVariableTypeTable";
-    public static final String SIGNATURE                 = "Signature";
+    public static final String CONSTANT_VALUE                          = "ConstantValue";                        // 4.8.2
+    public static final String CODE                                    = "Code";                                 // 4.8.3
+    public static final String STACK_MAP_TABLE                         = "StackMapTable";                        // 4.8.4
+    public static final String EXCEPTIONS                              = "Exceptions";                           // 4.8.5
+    public static final String INNER_CLASSES                           = "InnerClasses";                         // 4.8.6
+    public static final String ENCLOSING_METHOD                        = "EnclosingMethod";                      // 4.8.7
+    //public static final String SYNTHETIC                               = "Synthetic";                            // 4.8.8
+    public static final String SIGNATURE                               = "Signature";                            // 4.8.9
+    public static final String SOURCE_FILE                             = "SourceFile";                           // 4.8.10
+    //public static final String SOURCE_DEBUG_EXTENSION                  = "SourceDebugExtension";                 // 4.8.11
+    public static final String LINE_NUMBER_TABLE                       = "LineNumberTable";                      // 4.8.12
+    public static final String LOCAL_VARIABLE_TABLE                    = "LocalVariableTable";                   // 4.8.13
+    public static final String LOCAL_VARIABLE_TYPE_TABLE               = "LocalVariableTypeTable";               // 4.8.14
+    //public static final String DEPRECATED                              = "Deprecated";                           // 4.8.15
+    //public static final String RUNTIME_VISIBLE_ANNOTATIONS             = "RuntimeVisibleAnnotations";            // 4.8.16
+    //public static final String RUNTIME_INVISIBLE_ANNOTATIONS           = "RuntimeInvisibleAnnotations";          // 4.8.17
+    //public static final String RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS   = "RuntimeVisibleParameterAnnotations";   // 4.8.18
+    //public static final String RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS = "RuntimeInvisibleParameterAnnotations"; // 4.8.19
+    //public static final String ANNOTATION_DEFAULT                      = "AnnotationDefault";                    // 4.8.20
+
 
     public static Attribute parse(ClassFile       aClass,
                                   DataInputStream aIn)
@@ -53,10 +63,6 @@ import java.util.*;
         {
             return new AttributeInvalid(aClass, nameIndex, info);
         }
-        else if (name.toString().equals(SOURCE_FILE))
-        {
-            return new AttributeSourceFile(aClass, name, info);
-        }
         else if (name.toString().equals(CONSTANT_VALUE))
         {
             return new AttributeConstantValue(aClass, name, info);
@@ -80,6 +86,10 @@ import java.util.*;
         else if (name.toString().equals(SIGNATURE))
         {
             return new AttributeSignature(aClass, name, info);
+        }
+        else if (name.toString().equals(SOURCE_FILE))
+        {
+            return new AttributeSourceFile(aClass, name, info);
         }
         else
         {
@@ -112,6 +122,10 @@ import java.util.*;
         {
             return new AttributeInvalid(aClass, nameIndex, info);
         }
+        else if (name.toString().equals(STACK_MAP_TABLE))
+        {
+            return new AttributeStackMapTable(aClass, aAttributeCode, name, info);
+        }
         else if (name.toString().equals(LINE_NUMBER_TABLE))
         {
             return new AttributeLineNumberTable(aClass, aAttributeCode, name, info);
@@ -133,6 +147,7 @@ import java.util.*;
     // ==================== GENERIC ATTRIBUTE  ====================
 
     protected boolean                   mIsValid = true;
+    protected boolean                   mIsStored = true;
     protected List<String>              mValidityErrors = new ArrayList<String>();
     protected ClassFile                 mClass;
 
@@ -163,6 +178,11 @@ import java.util.*;
     public final boolean isValid()
     {
         return mIsValid;
+    }
+
+    public final boolean isStored()
+    {
+        return mIsStored;
     }
 
     public final List<String> getValidityErrors()

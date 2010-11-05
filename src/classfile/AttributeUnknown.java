@@ -1,8 +1,8 @@
-/* Copyright (c) 2006 Olivier Elshocht
+/* Copyright (c) 2006-2010 Olivier Elshocht
  *
  * Attribute.java
  *
- * Created on 25 novembre 2006, 20:00
+ * Created 2006-11-25
  */
 
 package classfile;
@@ -20,7 +20,7 @@ import java.io.*;
     //     u4 attribute_length;
     //     u1 info[attribute_length];
     // }
-    private byte[]                    mInfo;
+    private byte[] mInfo;
 
     public AttributeUnknown(ClassFile                 aClass,
                             ConstantPool.ConstantUtf8 aName,

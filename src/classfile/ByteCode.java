@@ -1,19 +1,18 @@
-/* Copyright (c)2006 Olivier Elshocht
+/* Copyright (c)2006-2010 Olivier Elshocht
  *
  * ByteCode.java
  *
- * Created on 18 novembre 2006, 21:22
+ * Created 2006-11-18
  */
 
 package classfile;
 
 import java.io.*;
 import java.util.*;
-import security.*;
 
 /**
  *
- * @author Olivier
+ * @author Olivier Elshocht
  */
 /* package */ class ByteCode
 {
@@ -1502,8 +1501,8 @@ import security.*;
                         int constantIndex = mConstant.getIndex();
                         if (constantIndex != mValue)
                         {
-                            System.out.format("%5d: %s\n", Instruction.this.getOffset(), Instruction.this.toString());
-                            System.out.format("    => changed #%d to #%d\n", mValue, constantIndex);
+                            //System.out.format("%5d: %s\n", Instruction.this.getOffset(), Instruction.this.toString());
+                            //System.out.format("    => changed #%d to #%d\n", mValue, constantIndex);
                         }
                         if (0 != (constantIndex & 0xFFFFFF00))
                         {
@@ -1520,8 +1519,8 @@ import security.*;
                         int constantIndex = mConstant.getIndex();
                         if (constantIndex != mValue)
                         {
-                            System.out.format("%5d: %s\n", Instruction.this.getOffset(), Instruction.this.toString());
-                            System.out.format("    => changed #%d to #%d\n", mValue, constantIndex);
+                            //System.out.format("%5d: %s\n", Instruction.this.getOffset(), Instruction.this.toString());
+                            //System.out.format("    => changed #%d to #%d\n", mValue, constantIndex);
                         }
                         if (0 != (constantIndex & 0xFFFF0000))
                         {

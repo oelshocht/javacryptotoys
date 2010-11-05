@@ -1,8 +1,8 @@
-/* Copyright (c) 2006 Olivier Elshocht
+/* Copyright (c) 2006-2010 Olivier Elshocht
  *
  * ClassFile.java
  *
- * Created on 15 novembre 2006, 22:51
+ * Created 2006-11-15
  */
 
 package classfile;
@@ -15,6 +15,10 @@ import java.util.*;
  *
  * The JavaTM Virtual Machine Specification, Second Edition
  * Chapter 4 (http://java.sun.com/docs/books/vmspec/2nd-edition/html/ClassFile.doc.html):
+ *
+ * JSRs: Java Specification Requests
+ * JSR 202: JavaTM Class File Specification Update
+ * http://www.jcp.org/en/jsr/detail?id=202
  *
  * @author Olivier Elshocht
  */
@@ -60,7 +64,7 @@ public class ClassFile
     private int                          mMajorVersion;
 
     // Constants.
-    ConstantPool                 mConstantPool;
+    ConstantPool                         mConstantPool;
 
     // Class definition.
     private int                          mAccessFlags;
@@ -234,10 +238,26 @@ public class ClassFile
             mMethods[i].store(out);
         }
 
-        out.writeShort(mAttributes.length);
+//        out.writeShort(mAttributes.length);
+//        for (int i = 0; i < mAttributes.length; ++i)
+//        {
+//            mAttributes[i].store(out);
+//        }
+        int attributesCount = mAttributes.length;
         for (int i = 0; i < mAttributes.length; ++i)
         {
-            mAttributes[i].store(out);
+            if (!mAttributes[i].isStored())
+            {
+                attributesCount -= 1;
+            }
+        }
+        out.writeShort(attributesCount);
+        for (int i = 0; i < mAttributes.length; ++i)
+        {
+            if (mAttributes[i].isStored())
+            {
+                mAttributes[i].store(out);
+            }
         }
         out.close();
     }
@@ -274,14 +294,6 @@ public class ClassFile
         ConstantPool.ConstantNameAndType methodNameAndType = mConstantPool.addNameAndType(methodName, methodDescriptor);
         ConstantPool.ConstantMethodRef   methodRef         = mConstantPool.addMethodRef(methodClass, methodNameAndType);
 
-        // Create byte code for instruction invoke static classfile/Utf8.cryptString:(Ljava/land/String;)Ljava/lang/String;
-//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//        DataOutputStream dos = new DataOutputStream(bos);
-//        dos.writeByte(ByteCode.INVOKESTATIC);
-//        dos.writeShort(methodRef.getIndex());
-//        dos.flush();
-//        byte[] byteCode = bos.toByteArray();
-        
         // Patch code.
         for (Method method : mMethods)
         {
@@ -511,10 +523,26 @@ public class ClassFile
             aOut.writeShort(mName.getIndex());
             aOut.writeShort(mDescriptor.getIndex());
 
-            aOut.writeShort(mAttributes.length);
+//            aOut.writeShort(mAttributes.length);
+//            for (int i = 0; i < mAttributes.length; ++i)
+//            {
+//                mAttributes[i].store(aOut);
+//            }
+            int attributesCount = mAttributes.length;
             for (int i = 0; i < mAttributes.length; ++i)
             {
-                mAttributes[i].store(aOut);
+                if (!mAttributes[i].isStored())
+                {
+                    attributesCount -= 1;
+                }
+            }
+            aOut.writeShort(attributesCount);
+            for (int i = 0; i < mAttributes.length; ++i)
+            {
+                if (mAttributes[i].isStored())
+                {
+                    mAttributes[i].store(aOut);
+                }
             }
         }
 
@@ -677,10 +705,26 @@ public class ClassFile
             aOut.writeShort(mName.getIndex());
             aOut.writeShort(mDescriptor.getIndex());
 
-            aOut.writeShort(mAttributes.length);
+//            aOut.writeShort(mAttributes.length);
+//            for (int i = 0; i < mAttributes.length; ++i)
+//            {
+//                mAttributes[i].store(aOut);
+//            }
+            int attributesCount = mAttributes.length;
             for (int i = 0; i < mAttributes.length; ++i)
             {
-                mAttributes[i].store(aOut);
+                if (!mAttributes[i].isStored())
+                {
+                    attributesCount -= 1;
+                }
+            }
+            aOut.writeShort(attributesCount);
+            for (int i = 0; i < mAttributes.length; ++i)
+            {
+                if (mAttributes[i].isStored())
+                {
+                    mAttributes[i].store(aOut);
+                }
             }
         }
 
